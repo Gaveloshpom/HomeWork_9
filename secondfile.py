@@ -1,76 +1,121 @@
 users = {}
 
-def add(name, phone):
-    users_0 = {name: phone}
-    users.update(users_0)
-    return users
 
-def change(name, phone):
-    users_0 = {name: phone}
-    users.update(users_0)
+def input_error(func):
+    def inner(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError:
+            return "KeyError: Enter user name"
+        except ValueError:
+            return"ValueError: Give me name and phone please"
+        except IndexError:
+            return"IndexError: invalid index"
+        except TypeError:
+            return"TypeError"
+    return inner
 
-def phone(name):
-    a = users.get(name)
+
+@input_error
+def add(data):
+    name, phone = create_data(data)
+    if name in users:
+        raise ValueError('This contact already exist.')
+    users[name] = phone
+    return f"You added new contact {name}, his phone: {phone}."
+
+
+@input_error
+def change(data):
+    name, phone = create_data(data)
+    if name in users:
+        users_0 = {name: phone}
+        users.update(users_0)
+        return f"You changed {name}`s phone to {phone}"
+    return "Use add command"
+
+
+@input_error
+def phone_search(name):
+    if name.strip() not in users:
+        raise ValueError("This contact does`t exist")
+    a = users.get(name.strip())
     return a
 
+
+@input_error
 def show_all():
-    print(users)
+    user = ''
+    for key, value in users.items():
+        user += f'{key} : {value} \n'
+    return user
 
-#def exit_func():
-        #
 
-def get_command(x):
-    a = command_dict[x]
-    return a
+@input_error
+def exit_func():
+    return 'good bye'
 
+
+@input_error
 def hello_func():
-    print("Hello")
+    return "Hello"
+
+
+
+def create_data(data):
+    new_data = data.strip().split(" ")
+    name = new_data[0]
+    phone = new_data[1]
+    if name.isnumeric():
+        raise ValueError("Must be a str, not int/float")
+    if not phone.isnumeric():
+        raise ValueError("Must be a number, not str")
+    return name, phone
+
+
+
+
+def change_input(command):
+    command_1 = command
+    data = ''
+    for key in command_dict:
+        if command.strip().lower().startswith(key):
+            command_1 = key
+            data = command[len(command_1):]
+            break
+    if data:
+        return reaction_func(command_1)(data)
+    return reaction_func(command_1)()
+
+
+def reaction_func(reaction):
+    return command_dict.get(reaction, break_func)
+
+
+def break_func():
+    return 'Wrong enter.'
+
+
+def main():
+    while True:
+        command = input('Enter command for bot: ')
+        result = change_input(command)
+        print(result)
+        if result == 'good bye':
+            break
+
 
 command_dict = {
     'hello': hello_func,
     'add': add,
     'change': change,
-    'phone': phone,
+    'phone': phone_search,
     'show all': show_all,
-#    'good bye': exit_func,
-#    'close': exit_func,
-#    'exit': exit_func,
+    'good bye': exit_func,
+    'close': exit_func,
+    'exit': exit_func,
 
 }
-def main():
-
-    while True:
-        command = input("Enter command: ")
-        command_1 = command.split(" ")[0].lower()
-
-        if command_1 not in command_dict:
-            command_1 = command.split(" ")[0] + " " + command.split(" ")[1]
-
-        if command_1 == "close" or command_1 == "exit" or command_1 == "good bye":
-            break
-        handler = get_command(command_1)
-
-        try:
-
-            if command_1 == "phone":
-                name_1 = command.split(" ")[1]
-                result = handler(name_1)
-
-            elif command_1 == "add" or command_1 == "change":
-                name_1 = command.split(" ")[1]
-                phone_1 = command.split(" ")[2]
-                result = handler(name_1, phone_1)
-
-            else:
-                handler()
-
-
-        except:
-            print("error")
-            continue
-
-        if result:
-            print(result)
 
 
 if __name__ == '__main__':
